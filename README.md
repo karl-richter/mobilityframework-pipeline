@@ -10,18 +10,18 @@
 pip install google-cloud-bigquery
 
 ## Run Apache Airflow
-1. (Optional) Install Airflow Package
+1. (Optional) Install Airflow Package  
    `pip install apache-airflow==1.10.15`
-2. (Optional) Export Airflow default environment
+2. (Optional) Export Airflow default environment  
    `export AIRFLOW_HOME=~/airflow`
-3. (Optional) Initialize Airflow Metadatabase
+3. (Optional) Initialize Airflow Metadatabase  
    `airflow initdb`
-4. Start Airflow Web Server in seperate Terminal
+4. Start Airflow Web Server in seperate Terminal  
    `airflow webserver -p 8080`
-5. Start Airflow Scheduler in seperate Terminal
+5. Start Airflow Scheduler in seperate Terminal  
    `airflow scheduler`
-6. Check that Airflow detected DAG
+6. Check that Airflow detected DAG  
    `airflow tasks list sparkify-pipeline --tree`
-7. Run task from CLI
-   `airflow tasks test <dag_id> <task_id> <execution_date>`
+7. Run task from CLI  
+   `airflow tasks test <dag_id> <task_id> <execution_date>`  
    `airflow tasks test mobility-pipeline transfer_s3_to_redshift "2018-11-01"`
