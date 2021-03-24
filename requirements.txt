@@ -13,3 +13,6 @@ sklearn
 minisom
 
 apache-airflow==1.10.15
+
+boto3
+psycopg2

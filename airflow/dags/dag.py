@@ -2,11 +2,12 @@ from datetime import datetime, timedelta
 import os
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
-#from airflow.operators import (StageToRedshiftOperator, LoadFactOperator,
+from airflow.operators import S3ToRedshiftOperator
+#from airflow.operators import (S3ToRedshiftOperator) #, LoadFactOperator,
 #                                LoadDimensionOperator, DataQualityOperator)
 
-#AWS_KEY = os.environ.get('AWS_KEY')
-#AWS_SECRET = os.environ.get('AWS_SECRET')
+AWS_KEY = os.environ.get('AWS_KEY')
+AWS_SECRET = os.environ.get('AWS_SECRET')
 
 default_args = {
     'owner': 'Karl Richter',
@@ -14,50 +15,50 @@ default_args = {
     'end_date': datetime(2018, 11, 30)
 }
 
-dag = DAG('sparkify-pipeline',
+dag = DAG('mobility-pipeline',
           default_args=default_args,
           description='Load and transform data in Redshift with Airflow',
           schedule_interval=None,
           max_active_runs=1
         )
 
-start_operator = DummyOperator(task_id='Begin_execution',  dag=dag)
+start_operator = DummyOperator(
+        task_id = 'Begin_execution', 
+        dag = dag
+    )
 
-'''
-stage_events_to_redshift = StageToRedshiftOperator(
-    task_id = "Stage_events",
-    dag = dag, 
-    aws_credentials_id = "aws_credentials",
-    s3_bucket = "udacity-dend",
-    s3_key = "log_data/{year}/{month:02d}/{year}-{month:02d}-{day:02d}-events.json",
-    json_format = "s3://udacity-dend/log_json_path.json",
-    redshift_conn_id = "redshift",
-    table = "staging_events",
-    truncate_insert = True,
-    provide_context=True,
-    create_table = """
-                    CREATE TABLE IF NOT EXISTS staging_events (
-                        artist varchar(256),
-                        auth varchar(256),
-                        firstname varchar(256),
-                        gender varchar(256),
-                        iteminsession int4,
-                        lastname varchar(256),
-                        length numeric(18,0),
-                        "level" varchar(256),
-                        location varchar(256),
-                        "method" varchar(256),
-                        page varchar(256),
-                        registration numeric(18,0),
-                        sessionid int4,
-                        song varchar(256),
-                        status int4,
-                        ts int8,
-                        useragent varchar(256),
-                        userid int4
-                    );"""
-)
-'''
+task_transfer_s3_to_redshift = S3ToRedshiftOperator(
+        task_id = 'transfer_s3_to_redshift',
+        dag = dag,
+        aws_credentials_id = "aws_credentials",
+        redshift_conn_id = "redshift",
+        s3_bucket = "mobility-data",
+        s3_key = "mobility-data-raw.csv",
+        schema = "PUBLIC",
+        table = "mobility_staging",
+        copy_arguments = "CSV DELIMITER ',' IGNOREHEADER 1",
+        create_table = """
+                       DROP TABLE IF EXISTS mobility_staging;
+                       CREATE TABLE IF NOT EXISTS mobility_staging (
+                          city VARCHAR(50),
+                          county VARCHAR(50),
+                          lat DECIMAL,
+                          lng DECIMAL,
+                          model VARCHAR(10),
+                          sign VARCHAR(10),
+                          code VARCHAR(10),
+                          energyLevel INTEGER,
+                          energyType VARCHAR(10),
+                          lastActivity VARCHAR(50),
+                          manufacturer VARCHAR(10),
+                          provider VARCHAR(10),
+                          time INTEGER,
+                          yyyy VARCHAR(4),
+                          mm VARCHAR(7),
+                          dd VARCHAR(10),
+                          category VARCHAR(20)
+                       )"""
+    )
 
 '''
 load_songplays_table = LoadFactOperator(
@@ -85,3 +86,4 @@ load_songplays_table = LoadFactOperator(
 '''
 
 # DEPENDENCIES
+start_operator >> task_transfer_s3_to_redshift

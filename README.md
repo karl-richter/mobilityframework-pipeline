@@ -24,3 +24,4 @@ pip install google-cloud-bigquery
    `airflow tasks list sparkify-pipeline --tree`
 7. Run task from CLI
    `airflow tasks test <dag_id> <task_id> <execution_date>`
+   `airflow tasks test mobility-pipeline transfer_s3_to_redshift "2018-11-01"`
