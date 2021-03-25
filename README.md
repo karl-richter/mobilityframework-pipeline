@@ -10,25 +10,38 @@
 
 ## Data Modell
 ### Staging Layer
-- Mobilty Staging Table  
-  > mobility_staging
-
-- Weather Staging Table  
-  > weather_staging
+- `mobility_staging`
+  Table containing the raw and un-processed mobility-data using the schema below:
+   ```sql
+      city VARCHAR(50),
+      country VARCHAR(50),
+      lat DECIMAL,
+      lng DECIMAL,
+      model VARCHAR(10),
+      sign VARCHAR(10),
+      code VARCHAR(10),
+      energyLevel INTEGER,
+      energyType VARCHAR(10),
+      lastActivity VARCHAR(50),
+      manufacturer VARCHAR(10),
+      provider VARCHAR(10),
+      time INTEGER,
+      yyyy VARCHAR(4),
+      mm VARCHAR(7),
+      dd VARCHAR(10),
+      category VARCHAR(20)
+   ``` 
+- `weather_staging`
 
 ### Silver Layer
-- Trips Table  
-  > mobility_trips
+- `mobility_trips`
 
-- Weather Table  
-  > weather
+- `weather`
 
 ### Aggregation Layer
-- Aggregation Base Table  
-  > base_aggregate
+- `base_aggregate`
 
-- Aggregation Trips Table  
-  > trips_aggregate
+- `trips_aggregate`
 
 ## Data Pipeline
 This section outlines the scope of the individual tasks of this pipeline. Each bullet-point below describes one task of the pipeline. The dependency between the tasks can be derived from the schema below.  
