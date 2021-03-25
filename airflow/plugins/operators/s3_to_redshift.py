@@ -53,6 +53,10 @@ class S3ToRedshiftOperator(BaseOperator):
         redshift.run(self.create_table)
         
         self.log.info(f"Copy data from S3 into { self.table } table. ")
+        self.s3_key = self.s3_key.format(year = context.get('execution_date').strftime("%Y"), 
+                                         month = context.get('execution_date').strftime("%m"),
+                                         day = context.get('execution_date').strftime("%d"),
+                                         date = context.get('execution_date').strftime("%Y-%m-%d"))
         rendered_key = self.s3_key.format(**context)
         s3_path = "s3://{}/{}".format(self.s3_bucket, rendered_key)
         formatted_sql = S3ToRedshiftOperator.copy_sql.format(

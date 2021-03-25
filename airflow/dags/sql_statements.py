@@ -66,7 +66,7 @@ AGG_DROP_TABLE =  """
                  """
 
 AGG_DELETE_FROM_TABLE =  """
-                         DELETE FROM trips_aggregate WHERE dd = '2021-03-01';
+                         DELETE FROM trips_aggregate WHERE dd = '{execution_date}';
                          """
 
 AGG_CREATE_TABLE =  """
@@ -109,7 +109,7 @@ AGG_INSERT_TABLE =  """
                         yyyy
                     FROM mobility_trips
                     LEFT JOIN weather ON mobility_trips.dd = weather.dd
-                    WHERE mobility_trips.dd = '2021-03-01'
+                    WHERE mobility_trips.dd = '{execution_date}'
                     GROUP BY mobility_trips.city, mobility_trips.country, type, temperature_avg, weather_type, mobility_trips.dd, mm, yyyy
                     ;"""
 
@@ -118,7 +118,7 @@ BASE_DROP_TABLE =  """
                  """
 
 BASE_DELETE_FROM_TABLE =  """
-                         DELETE FROM base_aggregate WHERE dd = '2021-03-01';
+                         DELETE FROM base_aggregate WHERE dd = '{execution_date}';
                          """
 
 BASE_CREATE_TABLE =  """
@@ -152,7 +152,7 @@ BASE_INSERT_TABLE =  """
                         mm,
                         yyyy
                     FROM  mobility_staging
-                    WHERE dd = '2021-03-01'
+                    WHERE dd = '{execution_date}'
                     GROUP BY city, country, dd, mm, yyyy
                     ;"""
 

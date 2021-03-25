@@ -37,7 +37,7 @@ task_transfer_mobility_to_redshift = S3ToRedshiftOperator (
         aws_credentials_id = "aws_credentials",
         redshift_conn_id = "redshift",
         s3_bucket = "mobility-data",
-        s3_key = "mobility-data-raw.csv",
+        s3_key = "{year}/{month}/{day}/mobility-data-{date}.csv",
         schema = "PUBLIC",
         table = "mobility_staging",
         copy_arguments = "CSV DELIMITER ',' IGNOREHEADER 1",
@@ -97,8 +97,8 @@ task_aggregate_trips = PostgresOperator(
           {insert}
           """.format(drop = sql_statements.AGG_DROP_TABLE,
                      create = sql_statements.AGG_CREATE_TABLE,
-                     delete = sql_statements.AGG_DELETE_FROM_TABLE,
-                     insert = sql_statements.AGG_INSERT_TABLE
+                     delete = sql_statements.AGG_DELETE_FROM_TABLE.format(execution_date = '{{ ds }}'),
+                     insert = sql_statements.AGG_INSERT_TABLE.format(execution_date = '{{ ds }}')
                     )
 )
 
@@ -113,8 +113,8 @@ task_aggregate_base = PostgresOperator(
           {insert}
           """.format(drop = sql_statements.BASE_DROP_TABLE,
                      create = sql_statements.BASE_CREATE_TABLE,
-                     delete = sql_statements.BASE_DELETE_FROM_TABLE,
-                     insert = sql_statements.BASE_INSERT_TABLE
+                     delete = sql_statements.BASE_DELETE_FROM_TABLE.format(execution_date = '{{ ds }}'),
+                     insert = sql_statements.BASE_INSERT_TABLE.format(execution_date = '{{ ds }}')
                     )
 )
 
