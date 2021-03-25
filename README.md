@@ -31,7 +31,7 @@
       dd VARCHAR(10),
       category VARCHAR(20)
    ``` 
-- `weather_staging`
+- `weather_staging`  
   Table containing the raw weather data using the schema below:
   ```sql
       date VARCHAR(10),
@@ -44,7 +44,7 @@
   ```
 
 ### Silver Layer
-- `mobility_trips`
+- `mobility_trips`  
   Processed mobility data that contains data on a trip level. The schema is as followed:
   ```sql
       category VARCHAR(15),
@@ -74,7 +74,7 @@
       yyyy VARCHAR(4)
   ```
 
-- `weather`
+- `weather`  
   Processed weather data containing information about the `temperature_avg` and the `weather_type` on a given day. The schema is as followed:
   ```sql
       dd VARCHAR(10),
@@ -89,9 +89,41 @@
   ```
 
 ### Aggregation Layer
-- `base_aggregate`
+- `base_aggregate`  
+   Aggregated mobility data containing information about the number of visible vehicles on a given day, various information about the energy level and the position of the city. For more detailed information, refer to the schema below:
+   ```sql
+      city VARCHAR(25),
+      country VARCHAR(25),
+      vehicles_num INTEGER,
+      lat DECIMAL,
+      lng DECIMAL,
+      energy_level_avg DECIMAL,
+      energy_level_min DECIMAL,
+      energy_level_max DECIMAL,
+      dd VARCHAR(10),
+      mm VARCHAR(7),
+      yyyy VARCHAR(4)
+   ```
 
-- `trips_aggregate`
+- `trips_aggregate`  
+   Aggregated trip data containing information such as the number of trips on a given day, the number of utilized vehicles and information about the duration. See the schema below for more information:
+   ```sql
+      city VARCHAR(25),
+      country VARCHAR(25),
+      type VARCHAR(25),
+      trips_num INTEGER,
+      utilized_vehicles_num INTEGER,
+      trips_duration_avg DECIMAL,
+      trips_duration_min DECIMAL,
+      trips_duration_max DECIMAL,
+      start_energy_avg DECIMAL,
+      end_energy_avg DECIMAL,
+      temperature_avg DECIMAL,
+      weather_type VARCHAR(25),
+      dd VARCHAR(10),
+      mm VARCHAR(7),
+      yyyy VARCHAR(4)
+   ```
 
 ## Data Pipeline
 This section outlines the scope of the individual tasks of this pipeline. Each bullet-point below describes one task of the pipeline. The dependency between the tasks can be derived from the schema below.  
