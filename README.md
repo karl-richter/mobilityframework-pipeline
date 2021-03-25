@@ -23,12 +23,14 @@
 - Aggregation Trips Table  
   > trips_aggregate
 
-## ETL Process
+## Data Pipeline
 1. Load data from S3 to Redshift
 2. Calculate Trips and store in Trips Table
 3. Aggregate information into Metrics Table
    1. Aggregate Base Table
    2. Aggregate Trips Table
+
+![DAG Schema](https://github.com/karl-richter/mobilityframework-pipeline/blob/main/img/dag-schema.png)
 
 ## How to Run the Pipeline
 ### Run Development Environment
