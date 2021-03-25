@@ -10,8 +10,8 @@
 
 ## Data Modell
 ### Staging Layer
-- `mobility_staging`
-  Table containing the raw and un-processed mobility-data using the schema below:
+- `mobility_staging`  
+  Table containing the raw and un-processed mobility data using the schema below:
    ```sql
       city VARCHAR(50),
       country VARCHAR(50),
@@ -32,11 +32,61 @@
       category VARCHAR(20)
    ``` 
 - `weather_staging`
+  Table containing the raw weather data using the schema below:
+  ```sql
+      date VARCHAR(10),
+      city VARCHAR(50),
+      country VARCHAR(50),
+      temperature_min INTEGER,
+      temperature_max INTEGER,
+      rain DECIMAL,
+      humidity INTEGER
+  ```
 
 ### Silver Layer
 - `mobility_trips`
+  Processed mobility data that contains data on a trip level. The schema is as followed:
+  ```sql
+      category VARCHAR(15),
+      city VARCHAR(25),
+      code VARCHAR(15),
+      country VARCHAR(25),
+      dd VARCHAR(10),
+      end_energy DECIMAL,
+      end_lat DECIMAL,
+      end_lng DECIMAL,
+      end_time INTEGER,
+      energyLevel_diff DECIMAL,
+      energyType VARCHAR(10),
+      lastActivity TEXT,
+      manufacturer VARCHAR(10),
+      mm VARCHAR(7),
+      model VARCHAR(10),
+      provider VARCHAR(10),
+      sign VARCHAR(15),
+      start_energy DECIMAL,
+      start_lat DECIMAL,
+      start_lng DECIMAL,
+      start_time INTEGER,
+      time_diff DECIMAL,
+      time_parsed TEXT,
+      type VARCHAR(25),
+      yyyy VARCHAR(4)
+  ```
 
 - `weather`
+  Processed weather data containing information about the `temperature_avg` and the `weather_type` on a given day. The schema is as followed:
+  ```sql
+      dd VARCHAR(10),
+      city VARCHAR(50),
+      country VARCHAR(50),
+      temperature_min INTEGER,
+      temperature_max INTEGER,
+      temperature_avg DECIMAL,
+      rain DECIMAL,
+      humidity INTEGER,
+      weather_type VARCHAR(25)
+  ```
 
 ### Aggregation Layer
 - `base_aggregate`
