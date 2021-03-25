@@ -31,8 +31,8 @@ pipeline_start = DummyOperator(
         dag = dag
     )
 
-task_transfer_s3_to_redshift = S3ToRedshiftOperator (
-        task_id = 'transfer_s3_to_redshift',
+task_transfer_mobility_to_redshift = S3ToRedshiftOperator (
+        task_id = 'transfer_mobility_to_redshift',
         dag = dag,
         aws_credentials_id = "aws_credentials",
         redshift_conn_id = "redshift",
@@ -41,7 +41,20 @@ task_transfer_s3_to_redshift = S3ToRedshiftOperator (
         schema = "PUBLIC",
         table = "mobility_staging",
         copy_arguments = "CSV DELIMITER ',' IGNOREHEADER 1",
-        create_table = sql_statements.STAGING_CREATE_TABLE
+        create_table = sql_statements.MOBILITY_CREATE_TABLE
+)
+
+task_transfer_weather_to_redshift = S3ToRedshiftOperator (
+        task_id = 'transfer_weather_to_redshift',
+        dag = dag,
+        aws_credentials_id = "aws_credentials",
+        redshift_conn_id = "redshift",
+        s3_bucket = "mobility-data",
+        s3_key = "world-weather-march.csv",
+        schema = "PUBLIC",
+        table = "weather_staging",
+        copy_arguments = "CSV DELIMITER ';' IGNOREHEADER 1",
+        create_table = sql_statements.WEATHER_CREATE_TABLE
 )
 
 task_calculate_trips = CalculateTripsOperator (
@@ -59,6 +72,19 @@ task_calculate_trips = CalculateTripsOperator (
     create_table = sql_statements.TRIPS_CREATE_TABLE         
 )
 
+task_transform_weather = PostgresOperator(
+    task_id = "transform_weather",
+    postgres_conn_id = "redshift",
+    dag = dag,
+    sql = """
+          {drop}
+          {create}
+          {insert}
+          """.format(drop = sql_statements.WEATHER_TRANS_DROP_TABLE,
+                     create = sql_statements.WEATHER_TRANS_CREATE_TABLE,
+                     insert = sql_statements.WEATHER_TRANS_INSERT_TABLE
+                    )
+)
 
 task_aggregate_trips = PostgresOperator(
     task_id = "aggregate_trips",
@@ -95,12 +121,15 @@ task_aggregate_base = PostgresOperator(
 pipeline_end = DummyOperator(
         task_id = 'pipeline_end', 
         dag = dag
-    )
+)
 
 # DEPENDENCIES
-pipeline_start               >> task_transfer_s3_to_redshift
-task_transfer_s3_to_redshift >> task_aggregate_base
-task_transfer_s3_to_redshift >> task_calculate_trips
-task_calculate_trips         >> task_aggregate_trips
-task_aggregate_trips         >> pipeline_end
-task_aggregate_base          >> pipeline_end
+pipeline_start                     >> task_transfer_mobility_to_redshift
+pipeline_start                     >> task_transfer_weather_to_redshift
+task_transfer_weather_to_redshift  >> task_transform_weather
+task_transfer_mobility_to_redshift >> task_aggregate_base
+task_transfer_mobility_to_redshift >> task_calculate_trips
+task_transform_weather             >> task_aggregate_trips
+task_calculate_trips               >> task_aggregate_trips
+task_aggregate_trips               >> pipeline_end
+task_aggregate_base                >> pipeline_end

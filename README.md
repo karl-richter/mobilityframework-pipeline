@@ -2,10 +2,11 @@
 
 ## Data Sources
 ### Mobility data
-#### TIER
-#### GoRevel
+`s3://mobility-data/mobility-data-raw.csv`
 
 ### Weather data
+`s3://mobility-data/world-weather-march.csv`
+[Source](https://www.worldweatheronline.com/stuttgart-weather-history/baden-wurttemberg/de.aspx)
 
 ## Data Modell
 ### Staging Level

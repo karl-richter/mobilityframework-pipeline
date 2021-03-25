@@ -1,4 +1,4 @@
-STAGING_CREATE_TABLE = """
+MOBILITY_CREATE_TABLE = """
                        DROP TABLE IF EXISTS mobility_staging;
                        CREATE TABLE IF NOT EXISTS mobility_staging (
                           city VARCHAR(50),
@@ -18,6 +18,18 @@ STAGING_CREATE_TABLE = """
                           mm VARCHAR(7),
                           dd VARCHAR(10),
                           category VARCHAR(20)
+                       )"""
+
+WEATHER_CREATE_TABLE = """
+                       DROP TABLE IF EXISTS weather_staging;
+                       CREATE TABLE IF NOT EXISTS weather_staging (
+                          date VARCHAR(10),
+                          city VARCHAR(50),
+                          country VARCHAR(50),
+                          temperature_min INTEGER,
+                          temperature_max INTEGER,
+                          rain DECIMAL,
+                          humidity INTEGER
                        )"""
 
 TRIPS_CREATE_TABLE = """
@@ -69,6 +81,8 @@ AGG_CREATE_TABLE =  """
                     trips_duration_max DECIMAL,
                     start_energy_avg DECIMAL,
                     end_energy_avg DECIMAL,
+                    temperature_avg DECIMAL,
+                    weather_type VARCHAR(25),
                     dd VARCHAR(10),
                     mm VARCHAR(7),
                     yyyy VARCHAR(4)
@@ -78,8 +92,8 @@ AGG_CREATE_TABLE =  """
 AGG_INSERT_TABLE =  """
                     INSERT INTO trips_aggregate
                     SELECT 
-                        city, 
-                        country,
+                        mobility_trips.city, 
+                        mobility_trips.country,
                         type,
                         COUNT(sign) AS trips_num,
                         COUNT(DISTINCT sign) AS utilized_vehicles_num,
@@ -88,12 +102,15 @@ AGG_INSERT_TABLE =  """
                         MAX(time_diff) AS trips_duration_max,
                         AVG(start_energy) AS start_energy_avg,
                         AVG(end_energy) AS end_energy_avg,
-                        dd,
+                        temperature_avg,
+                        weather_type,
+                        mobility_trips.dd,
                         mm,
                         yyyy
-                    FROM  mobility_trips
-                    WHERE dd = '2021-03-01'
-                    GROUP BY city, country, type, dd, mm, yyyy
+                    FROM mobility_trips
+                    LEFT JOIN weather ON mobility_trips.dd = weather.dd
+                    WHERE mobility_trips.dd = '2021-03-01'
+                    GROUP BY mobility_trips.city, mobility_trips.country, type, temperature_avg, weather_type, mobility_trips.dd, mm, yyyy
                     ;"""
 
 BASE_DROP_TABLE =  """
@@ -123,8 +140,8 @@ BASE_CREATE_TABLE =  """
 BASE_INSERT_TABLE =  """
                     INSERT INTO base_aggregate
                     SELECT 
-                        city, 
-                        country,
+                        mobility_staging.city, 
+                        mobility_staging.country,
                         COUNT(DISTINCT sign) AS vehicles_num,
                         AVG(lat) AS lat,
                         AVG(lng) AS lng,
@@ -137,4 +154,41 @@ BASE_INSERT_TABLE =  """
                     FROM  mobility_staging
                     WHERE dd = '2021-03-01'
                     GROUP BY city, country, dd, mm, yyyy
+                    ;"""
+
+WEATHER_TRANS_DROP_TABLE =  """
+                 DROP TABLE IF EXISTS weather;
+                 """
+
+WEATHER_TRANS_CREATE_TABLE =  """
+                    CREATE TABLE IF NOT EXISTS weather (
+                    dd VARCHAR(10),
+                    city VARCHAR(50),
+                    country VARCHAR(50),
+                    temperature_min INTEGER,
+                    temperature_max INTEGER,
+                    temperature_avg DECIMAL,
+                    rain DECIMAL,
+                    humidity INTEGER,
+                    weather_type VARCHAR(25)
+                    );
+                    """
+
+WEATHER_TRANS_INSERT_TABLE =  """
+                    INSERT INTO weather
+                    SELECT 
+                    date AS dd,
+                    city,
+                    country,
+                    temperature_min,
+                    temperature_max,
+                    (temperature_max + temperature_min) / 2 AS temperature_avg,
+                    rain,
+                    humidity,
+                    CASE
+                        WHEN temperature_avg > 7 THEN 'Very good'
+                        WHEN temperature_avg > 5 THEN 'Medium'
+                        ELSE 'Bad'
+                    END AS weather_type
+                    FROM weather_staging
                     ;"""
