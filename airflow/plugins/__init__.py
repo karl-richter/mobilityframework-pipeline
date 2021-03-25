@@ -8,5 +8,6 @@ import operators
 class MobilityPlugin(AirflowPlugin):
     name = "mobility_plugin"
     operators = [
-        operators.S3ToRedshiftOperator
+        operators.S3ToRedshiftOperator,
+        operators.CalculateTripsOperator
     ]

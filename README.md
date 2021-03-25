@@ -9,6 +9,8 @@
 1. Load data from S3 to Redshift
 2. Calculate Trips and store in Trips Table
 3. Aggregate information into Metrics Table
+   1. Aggregate Base Table
+   2. Aggregate Trips Table
 
 ## How to Run the Pipeline
 ### Run Development Environment
