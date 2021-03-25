@@ -5,30 +5,56 @@
 `s3://mobility-data/mobility-data-raw.csv`
 
 ### Weather data
-`s3://mobility-data/world-weather-march.csv`
+`s3://mobility-data/world-weather-march.csv`  
 [Source](https://www.worldweatheronline.com/stuttgart-weather-history/baden-wurttemberg/de.aspx)
 
 ## Data Modell
-### Staging Level
+### Staging Layer
 - Mobilty Staging Table  
-  > staging_table
+  > mobility_staging
 
-### Transaction Level
+- Weather Staging Table  
+  > weather_staging
+
+### Silver Layer
 - Trips Table  
   > mobility_trips
 
-### Aggregation Level
+- Weather Table  
+  > weather
+
+### Aggregation Layer
 - Aggregation Base Table  
   > base_aggregate
+
 - Aggregation Trips Table  
   > trips_aggregate
 
 ## Data Pipeline
-1. Load data from S3 to Redshift
-2. Calculate Trips and store in Trips Table
-3. Aggregate information into Metrics Table
-   1. Aggregate Base Table
-   2. Aggregate Trips Table
+This section outlines the scope of the individual tasks of this pipeline. Each bullet-point below describes one task of the pipeline. The dependency between the tasks can be derived from the schema below.
+1. Staging Layer  
+   On the staging layer, date is onboarded from S3 to the Redshift data warehouse. The schema of the data is inferred.
+   - `transfer_mobility_to_redshift`  
+      Load all data of the partition for the specified execution date of the pipeline from the bucket `s3://mobility-data/world-weather-march.csv` into the table `mobility_staging` on Redshift using the provided schema.
+   - `transfer_weather_to_redshift`  
+      Load all data from within the bucket `s3://mobility-data/world-weather-march.csv` into the table `weather_staging` on Redshift using the provided schema.
+
+2. Silver Layer  
+   - `calculate_trips`  
+     Extract: Load data from table `mobility_staging`  
+     Transform: Calculate trips according to the logic within the custom Operator to derive `rides`, `maintenance` and `charge` trips from the timeseries data.  
+     Load: Store results in the table `mobility_trips` using the provided schema.  
+   - `transform_weather`  
+     Extract: Load data from `weather_staging`  
+     Transform: Derive average temperature and weather column using SQL.
+     Load: Store data in table `weather` using the provided schema. 
+
+3. Aggregation Layer  
+   Aggregate information into Metrics Table.  
+   - `aggregate_base`  
+     Aggregate the raw mobility data in the table `mobility_staging` to derive the number of vehicles visible on the execution date of the pipeline.
+   - `aggregate_trips`  
+     Aggregate the trips data in the table `mobility_trips` to derive the number of trips and the average-min-max duration on the execution date of the pipeline.
 
 ![DAG Schema](https://github.com/karl-richter/mobilityframework-pipeline/blob/main/img/dag-schema.png)
 
