@@ -31,15 +31,17 @@
   > trips_aggregate
 
 ## Data Pipeline
-This section outlines the scope of the individual tasks of this pipeline. Each bullet-point below describes one task of the pipeline. The dependency between the tasks can be derived from the schema below.
-***1. Staging Layer***  
-   On the staging layer, date is onboarded from S3 to the Redshift data warehouse. The schema of the data is inferred.
+This section outlines the scope of the individual tasks of this pipeline. Each bullet-point below describes one task of the pipeline. The dependency between the tasks can be derived from the schema below.  
+
+### Staging Layer
+   On the staging layer, data is onboarded from S3 to the Redshift data warehouse. The schema of the data is inferred.
    - `transfer_mobility_to_redshift`  
       Load all data of the partition for the specified execution date of the pipeline from the bucket `s3://mobility-data/world-weather-march.csv` into the table `mobility_staging` on Redshift using the provided schema.
    - `transfer_weather_to_redshift`  
       Load all data from within the bucket `s3://mobility-data/world-weather-march.csv` into the table `weather_staging` on Redshift using the provided schema.
 
-***2. Silver Layer***  
+### Silver Layer
+   On the silver layer, data from the staging layer is processed and stored back into output tables. This layer frames the core of the pipeline as business logic is applied.  
    - `calculate_trips`  
      Extract: Load data from table `mobility_staging`.  
      Transform: Calculate trips according to the logic within the custom Operator to derive `rides`, `maintenance` and `charge` trips from the timeseries data.  
@@ -49,8 +51,8 @@ This section outlines the scope of the individual tasks of this pipeline. Each b
      Transform: Derive average temperature and weather column using SQL.  
      Load: Store data in table `weather` using the provided schema. 
 
-***3. Aggregation Layer***  
-   Aggregate information into Metrics Table.  
+### Aggregation Layer
+   On the aggregation layer, data from the tables created on the silver layer is aggregated into tables that provide metrics for potential BI systems that can be connected.  
    - `aggregate_base`  
      Aggregate the raw mobility data in the table `mobility_staging` to derive the number of vehicles visible on the execution date of the pipeline.
    - `aggregate_trips`  
