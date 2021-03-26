@@ -8,7 +8,7 @@ To enrich the trip information, a weather dataset is loaded that allows to deriv
 A plotted extract from the mobility dataset can be seen below:  
 
 
-![Mobility Data](https://github.com/karl-richter/mobilityframework-pipeline/blob/main/img/mobility-data.png)
+![Mobility Data](https://github.com/karl-richter/mobilityframework-pipeline/blob/main/img/mobiliy-data.png)
 
 
 ## Data Sources
