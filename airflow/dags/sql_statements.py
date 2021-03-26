@@ -1,63 +1,64 @@
 MOBILITY_CREATE_TABLE = """
                        CREATE TABLE IF NOT EXISTS mobility_staging (
-                          city VARCHAR(50),
-                          country VARCHAR(50),
-                          lat REAL,
-                          lng REAL,
+                          city VARCHAR(50) NOT NULL,
+                          country VARCHAR(50) NOT NULL,
+                          lat REAL NOT NULL,
+                          lng REAL NOT NULL,
                           model VARCHAR(10),
-                          sign VARCHAR(10),
+                          sign VARCHAR(10) NOT NULL,
                           code VARCHAR(10),
-                          energyLevel INTEGER,
+                          energyLevel INTEGER NOT NULL,
                           energyType VARCHAR(10),
                           lastActivity VARCHAR(50),
                           manufacturer VARCHAR(10),
                           provider VARCHAR(10),
-                          time INTEGER,
-                          yyyy VARCHAR(4),
-                          mm VARCHAR(7),
-                          dd VARCHAR(10),
+                          time INTEGER NOT NULL,
+                          yyyy VARCHAR(4) NOT NULL,
+                          mm VARCHAR(7) NOT NULL,
+                          dd VARCHAR(10) NOT NULL,
                           category VARCHAR(20)
                        )"""
 
 WEATHER_CREATE_TABLE = """
                        DROP TABLE IF EXISTS weather_staging;
                        CREATE TABLE IF NOT EXISTS weather_staging (
-                          date VARCHAR(10),
-                          city VARCHAR(50),
-                          country VARCHAR(50),
-                          temperature_min INTEGER,
-                          temperature_max INTEGER,
-                          rain REAL,
-                          humidity INTEGER
+                          date VARCHAR(10) NOT NULL,
+                          city VARCHAR(50) NOT NULL,
+                          country VARCHAR(50) NOT NULL,
+                          temperature_min INTEGER NOT NULL,
+                          temperature_max INTEGER NOT NULL,
+                          rain REAL NOT NULL,
+                          humidity INTEGER NOT NULL,
+                          PRIMARY KEY (date)
                        )"""
 
 TRIPS_CREATE_TABLE = """
                     CREATE TABLE IF NOT EXISTS mobility_trips (
-                       category VARCHAR(15),
-                       city VARCHAR(25),
+                       category VARCHAR(15) NOT NULL,
+                       city VARCHAR(25) NOT NULL,
                        code VARCHAR(15),
-                       country VARCHAR(25),
-                       dd VARCHAR(10),
-                       end_energy REAL,
-                       end_lat REAL,
-                       end_lng REAL,
-                       end_time INTEGER,
-                       energyLevel_diff REAL,
-                       energyType VARCHAR(10),
+                       country VARCHAR(25) NOT NULL,
+                       dd VARCHAR(10) NOT NULL,
+                       end_energy REAL NOT NULL,
+                       end_lat REAL NOT NULL,
+                       end_lng REAL NOT NULL,
+                       end_time INTEGER NOT NULL,
+                       energyLevel_diff REAL NOT NULL,
+                       energyType VARCHAR(10) NOT NULL,
                        lastActivity TEXT,
                        manufacturer VARCHAR(10),
-                       mm VARCHAR(7),
+                       mm VARCHAR(7) NOT NULL,
                        model VARCHAR(10),
                        provider VARCHAR(10),
-                       sign VARCHAR(15),
-                       start_energy REAL,
-                       start_lat REAL,
-                       start_lng REAL,
-                       start_time INTEGER,
-                       time_diff REAL,
+                       sign VARCHAR(15) NOT NULL,
+                       start_energy REAL NOT NULL,
+                       start_lat REAL NOT NULL,
+                       start_lng REAL NOT NULL,
+                       start_time INTEGER NOT NULL,
+                       time_diff REAL NOT NULL,
                        time_parsed TEXT,
-                       type VARCHAR(25),
-                       yyyy VARCHAR(4)
+                       type VARCHAR(25) NOT NULL,
+                       yyyy VARCHAR(4) NOT NULL
                    );"""
 
 AGG_DELETE_FROM_TABLE =  """
@@ -66,11 +67,11 @@ AGG_DELETE_FROM_TABLE =  """
 
 AGG_CREATE_TABLE =  """
                     CREATE TABLE IF NOT EXISTS trips_aggregate (
-                    city VARCHAR(25),
-                    country VARCHAR(25),
-                    type VARCHAR(25),
-                    trips_num INTEGER,
-                    utilized_vehicles_num INTEGER,
+                    city VARCHAR(25) NOT NULL,
+                    country VARCHAR(25) NOT NULL,
+                    type VARCHAR(25) NOT NULL,
+                    trips_num INTEGER NOT NULL,
+                    utilized_vehicles_num INTEGER NOT NULL,
                     trips_duration_avg REAL,
                     trips_duration_min REAL,
                     trips_duration_max REAL,
@@ -78,9 +79,9 @@ AGG_CREATE_TABLE =  """
                     end_energy_avg REAL,
                     temperature_avg REAL,
                     weather_type VARCHAR(25),
-                    dd VARCHAR(10),
-                    mm VARCHAR(7),
-                    yyyy VARCHAR(4)
+                    dd VARCHAR(10) NOT NULL,
+                    mm VARCHAR(7) NOT NULL,
+                    yyyy VARCHAR(4) NOT NULL
                     );
                     """
 
@@ -114,17 +115,17 @@ BASE_DELETE_FROM_TABLE =  """
 
 BASE_CREATE_TABLE =  """
                     CREATE TABLE IF NOT EXISTS base_aggregate (
-                    city VARCHAR(25),
-                    country VARCHAR(25),
-                    vehicles_num INTEGER,
+                    city VARCHAR(25) NOT NULL,
+                    country VARCHAR(25) NOT NULL,
+                    vehicles_num INTEGER NOT NULL,
                     lat REAL,
                     lng REAL,
                     energy_level_avg REAL,
                     energy_level_min REAL,
                     energy_level_max REAL,
-                    dd VARCHAR(10),
-                    mm VARCHAR(7),
-                    yyyy VARCHAR(4)
+                    dd VARCHAR(10) NOT NULL,
+                    mm VARCHAR(7) NOT NULL,
+                    yyyy VARCHAR(4) NOT NULL
                     );
                     """
 
@@ -153,15 +154,16 @@ WEATHER_TRANS_DROP_TABLE =  """
 
 WEATHER_TRANS_CREATE_TABLE =  """
                     CREATE TABLE IF NOT EXISTS weather (
-                    dd VARCHAR(10),
-                    city VARCHAR(50),
-                    country VARCHAR(50),
+                    dd VARCHAR(10) NOT NULL,
+                    city VARCHAR(50) NOT NULL,
+                    country VARCHAR(50) NOT NULL,
                     temperature_min INTEGER,
                     temperature_max INTEGER,
                     temperature_avg REAL,
                     rain REAL,
                     humidity INTEGER,
-                    weather_type VARCHAR(25)
+                    weather_type VARCHAR(25),
+                    PRIMARY KEY (dd)
                     );
                     """
 

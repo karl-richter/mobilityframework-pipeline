@@ -5,6 +5,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators import S3ToRedshiftOperator
 from airflow.operators import CalculateTripsOperator
+from airflow.operators import DataQualityOperator
 
 import sql_statements
 
@@ -112,6 +113,13 @@ task_aggregate_base = PostgresOperator(
                     )
 )
 
+run_quality_checks = DataQualityOperator(
+    task_id='data_quality_checks',
+    dag=dag,
+    redshift_conn_id = "redshift",
+    tables = ["mobility_staging", "mobility_trips", "trips_aggregate", "base_aggregate", "weather_staging", "weather"]
+)
+
 pipeline_end = DummyOperator(
         task_id = 'pipeline_end', 
         dag = dag
@@ -125,5 +133,6 @@ task_transfer_mobility_to_redshift >> task_aggregate_base
 task_transfer_mobility_to_redshift >> task_calculate_trips
 task_transform_weather             >> task_aggregate_trips
 task_calculate_trips               >> task_aggregate_trips
-task_aggregate_trips               >> pipeline_end
-task_aggregate_base                >> pipeline_end
+task_aggregate_trips               >> run_quality_checks
+task_aggregate_base                >> run_quality_checks
+run_quality_checks                 >> pipeline_end

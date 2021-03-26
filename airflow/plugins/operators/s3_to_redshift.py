@@ -37,6 +37,8 @@ class S3ToRedshiftOperator(BaseOperator):
         
 
     def execute(self, context):
+        execution_date = context.get('execution_date').strftime("%Y-%m-%d")
+
         self.log.info(f"Getting AWS Hook for { self.aws_credentials_id }. ")
         aws_hook = AwsHook(self.aws_credentials_id)
         credentials = aws_hook.get_credentials()
@@ -51,6 +53,9 @@ class S3ToRedshiftOperator(BaseOperator):
         
         self.log.info(f"Creating { self.table } table if not exists using the provided schema. ")
         redshift.run(self.create_table)
+
+        self.log.info(f"Delete data from potential prior runs from { self.table } for execution date.")
+        redshift.run(f"DELETE FROM { self.table } WHERE dd = '{ execution_date }'")
         
         self.log.info(f"Copy data from S3 into { self.table } table. ")
         # Format S3 key for day partition

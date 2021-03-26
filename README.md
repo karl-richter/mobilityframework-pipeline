@@ -1,11 +1,11 @@
 # Mobility-Framework Pipeline
-This project aims at providing a pipeline for loading, transforming and enriching timeseries data by a german micro-mobility provider. The mobility data contains pings of ~750 vehicles for the german city of Stuttgart. Each vehicle got pinged every two minutes throughout the day. Each ping contains information such as the battery level, a geo-location and a unique vehicle identifier (sign). Based on the hypothesis that vehicles do not return a ping while they are rented (not visible in the micro-mobility provider app), trips can be derived by identifying gaps in the timeseries of pings of individual vehicles. The number of trips on a day, the average duration, frequent start and end points can be derived from those trips. The output of this project could be a BI dashboard that displays the previously mentioned metrics to non-technical users.  
+This project aims at providing a pipeline for loading, transforming and enriching timeseries data by a german micro-mobility provider. The mobility data contains pings of ~750 vehicles for the german city of Stuttgart. Each vehicle got pinged every two minutes throughout the day. Each ping contains information such as the battery level, a geo-location and a unique vehicle identifier (sign). Based on the hypothesis that vehicles do not return a ping while they are rented (not visible in the micro-mobility provider app), trips can be derived by identifying gaps in the timeseries of pings of individual vehicles. The number of trips on a day, the average duration, frequent start and end points can be derived from those trips. The output of this project could be a BI dashboard that displays the previously mentioned metrics to non-technical users. 
 
 The raw dataset for this project is stored on S3, but all tables are desired in a Redshift Data Warehouse. Therefore, steps of this pipeline include the onboarding on the Redshift Data Warehouse, the curation of trips data using the business logic and the aggregation of both trips data and general information that can be derived directly from the dataset without any further processing. This makes up three level of data in the Data Warehouse: the `Staging Layer`, the `Silver Layer` and the `Aggregation Layer`.
 
 To enrich the trip information, a weather dataset is loaded that allows to derive the weather on a given day. This allows to explore correlations between the weather and the number of trips over a period of days.
 
-A plotted extract from the mobility dataset can be seen below:  
+The dataset contains around 540.000 rows per day (750 vehicles x 720 pings per day), which adds up to a total of around 5.4 million records for 10 days. A plotted extract from the mobility dataset can be seen below:  
 
 
 ![Mobility Data](https://github.com/karl-richter/mobilityframework-pipeline/blob/main/img/mobiliy-data.png)
@@ -23,36 +23,37 @@ The data source for enrichment for this project is weather data by the provider 
 ## Data Modell
 ### Staging Layer
 - `mobility_staging`  
-  Table containing the raw and un-processed mobility data using the schema below:
+  Table containing the raw and un-processed mobility data. The schema is as follows:
    ```sql
-      city VARCHAR(50),
-      country VARCHAR(50),
-      lat REAL,
-      lng REAL,
+      city VARCHAR(50) NOT NULL,
+      country VARCHAR(50) NOT NULL,
+      lat REAL NOT NULL,
+      lng REAL NOT NULL,
       model VARCHAR(10),
-      sign VARCHAR(10),
+      sign VARCHAR(10) NOT NULL,
       code VARCHAR(10),
-      energyLevel INTEGER,
+      energyLevel INTEGER NOT NULL,
       energyType VARCHAR(10),
       lastActivity VARCHAR(50),
       manufacturer VARCHAR(10),
       provider VARCHAR(10),
-      time INTEGER,
-      yyyy VARCHAR(4),
-      mm VARCHAR(7),
-      dd VARCHAR(10),
+      time INTEGER NOT NULL,
+      yyyy VARCHAR(4) NOT NULL,
+      mm VARCHAR(7) NOT NULL,
+      dd VARCHAR(10) NOT NULL,
       category VARCHAR(20)
    ``` 
 - `weather_staging`  
   Table containing the raw weather data using the schema below:
   ```sql
-      date VARCHAR(10),
-      city VARCHAR(50),
-      country VARCHAR(50),
-      temperature_min INTEGER,
-      temperature_max INTEGER,
-      rain REAL,
-      humidity INTEGER
+      date VARCHAR(10) NOT NULL,
+      city VARCHAR(50) NOT NULL,
+      country VARCHAR(50) NOT NULL,
+      temperature_min INTEGER NOT NULL,
+      temperature_max INTEGER NOT NULL,
+      rain REAL NOT NULL,
+      humidity INTEGER NOT NULL,
+      PRIMARY KEY (date)
   ```
 
 ### Silver Layer
@@ -61,72 +62,73 @@ The data source for enrichment for this project is weather data by the provider 
   Trips are calculated using a business logic that aims at detecting gaps in the timeseries of individual e-scooters. For example: As each scooter gets pinged every 2 minutes, a response containing a geo-location is expected every 2 minutes. If a scooter has been visible for a few hours at a given location, then disappears, and appears again but potentially at a different location, the "hidden-time" is identified as a `trip`. Depending on certain criterias, such as the change of location, the duration of the disappearence and the change in the scooter charge level, the trip is classified as either a `ride`, a `charge` or a `maintenance` event.  
   The schema of the table is as followed:
   ```sql
-      category VARCHAR(15),
-      city VARCHAR(25),
+      category VARCHAR(15) NOT NULL,
+      city VARCHAR(25) NOT NULL,
       code VARCHAR(15),
-      country VARCHAR(25),
-      dd VARCHAR(10),
-      end_energy REAL,
-      end_lat REAL,
-      end_lng REAL,
-      end_time INTEGER,
-      energyLevel_diff REAL,
-      energyType VARCHAR(10),
+      country VARCHAR(25) NOT NULL,
+      dd VARCHAR(10) NOT NULL,
+      end_energy REAL NOT NULL,
+      end_lat REAL NOT NULL,
+      end_lng REAL NOT NULL,
+      end_time INTEGER NOT NULL,
+      energyLevel_diff REAL NOT NULL,
+      energyType VARCHAR(10) NOT NULL,
       lastActivity TEXT,
       manufacturer VARCHAR(10),
-      mm VARCHAR(7),
+      mm VARCHAR(7) NOT NULL,
       model VARCHAR(10),
       provider VARCHAR(10),
-      sign VARCHAR(15),
-      start_energy REAL,
-      start_lat REAL,
-      start_lng REAL,
-      start_time INTEGER,
-      time_diff REAL,
+      sign VARCHAR(15) NOT NULL,
+      start_energy REAL NOT NULL,
+      start_lat REAL NOT NULL,
+      start_lng REAL NOT NULL,
+      start_time INTEGER NOT NULL,
+      time_diff REAL NOT NULL,
       time_parsed TEXT,
-      type VARCHAR(25),
-      yyyy VARCHAR(4)
+      type VARCHAR(25) NOT NULL,
+      yyyy VARCHAR(4) NOT NULL
   ```
 
 - `weather`  
   Processed weather data containing information about the `temperature_avg` and the `weather_type` on a given day. The schema is as followed:
   ```sql
-      dd VARCHAR(10),
-      city VARCHAR(50),
-      country VARCHAR(50),
+      dd VARCHAR(10) NOT NULL,
+      city VARCHAR(50) NOT NULL,
+      country VARCHAR(50) NOT NULL,
       temperature_min INTEGER,
       temperature_max INTEGER,
       temperature_avg REAL,
       rain REAL,
       humidity INTEGER,
-      weather_type VARCHAR(25)
+      weather_type VARCHAR(25),
+      PRIMARY KEY (dd)
   ```
 
 ### Aggregation Layer
 - `base_aggregate`  
    Aggregated mobility data containing information about the number of visible vehicles on a given day, various information about the energy level and the position of the city. For more detailed information, refer to the schema below:
    ```sql
-      city VARCHAR(25),
-      country VARCHAR(25),
-      vehicles_num INTEGER,
+      city VARCHAR(25) NOT NULL,
+      country VARCHAR(25) NOT NULL,
+      vehicles_num INTEGER NOT NULL,
       lat REAL,
       lng REAL,
       energy_level_avg REAL,
       energy_level_min REAL,
       energy_level_max REAL,
-      dd VARCHAR(10),
-      mm VARCHAR(7),
-      yyyy VARCHAR(4)
+      dd VARCHAR(10) NOT NULL,
+      mm VARCHAR(7) NOT NULL,
+      yyyy VARCHAR(4) NOT NULL
    ```
 
 - `trips_aggregate`  
    Aggregated trip data containing information such as the number of trips on a given day, the number of utilized vehicles and information about the duration. See the schema below for more information:
    ```sql
-      city VARCHAR(25),
-      country VARCHAR(25),
-      type VARCHAR(25),
-      trips_num INTEGER,
-      utilized_vehicles_num INTEGER,
+      city VARCHAR(25) NOT NULL,
+      country VARCHAR(25) NOT NULL,
+      type VARCHAR(25) NOT NULL,
+      trips_num INTEGER NOT NULL,
+      utilized_vehicles_num INTEGER NOT NULL,
       trips_duration_avg REAL,
       trips_duration_min REAL,
       trips_duration_max REAL,
@@ -134,13 +136,13 @@ The data source for enrichment for this project is weather data by the provider 
       end_energy_avg REAL,
       temperature_avg REAL,
       weather_type VARCHAR(25),
-      dd VARCHAR(10),
-      mm VARCHAR(7),
-      yyyy VARCHAR(4)
+      dd VARCHAR(10) NOT NULL,
+      mm VARCHAR(7) NOT NULL,
+      yyyy VARCHAR(4) NOT NULL
    ```
 
 ## Data Pipeline
-This section outlines the scope of the individual tasks of this pipeline. Each bullet-point below describes one task of the pipeline. The dependency between the tasks can be derived from the schema below.  
+This section outlines the scope of the individual tasks of this pipeline. The dependency between the tasks can be derived from the schema below.  
 
 ### Staging Layer
    On the staging layer, data is onboarded from S3 to the Redshift data warehouse. The schema of the data is inferred.
@@ -167,7 +169,18 @@ This section outlines the scope of the individual tasks of this pipeline. Each b
    - `aggregate_trips`  
      Aggregate the trips data in the table `mobility_trips` to derive the number of trips and the average-min-max duration on the execution date of the pipeline.
 
-![DAG Schema](https://github.com/karl-richter/mobilityframework-pipeline/blob/main/img/dag-schema.png)
+### Schedule
+The pipeline is currently scheduled to run once a day and load only the mobility data of the specified execution day. Thus, the pipeline can already handle backfills efficiently by passing a date to process.
+
+### Scenarios 
+- If the data was increased by 100x.  
+  The workers in the pipeline would need to be able to handle bigger loads of data. Two options for that are to either increase the size of the workers (eg. by using a bigger machine, vertical scaling) or to switch the runtime of Airflow from Python to Pyspark. Pyspark tasks can handle larger volumes of data by distributing the load to multiple worker nodes (horizontal scaling).
+- The pipelines would be run on a daily basis by 7 am every day.  
+  By using Airflow, the pipeline already handles daily runs. It would only need to be ensured that the source systems also deliver the data on time.
+- If the database needed to be accessed by 100+ people.  
+  The Redshift Data Warehouse would need to be configured to handle access rights to the data efficiently. With more than 100 users, it is expected that not all users are supposed to see all information, thus one can limit the visibility of tables and even columns or rows to certain IAM roles.
+
+![DAG Schema](https://github.com/karl-richter/mobilityframework-pipeline/blob/main/img/dag.png)
 
 ## How to Run the Pipeline
 ### Run Development Environment
