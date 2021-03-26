@@ -1,5 +1,9 @@
 # Mobility-Framework Pipeline
-This project aims at providing aloading, transforming and enriching timeseries data from a micro-mobility provider. 
+This project aims at providing a pipeline for loading, transforming and enriching timeseries data by a german micro-mobility provider. The mobility data contains pings of ~750 vehicles for the german city of Stuttgart. Each vehicle got pinged every two minutes throughout the day. Each ping contains information such as the battery level, a geo-location and a unique vehicle identifier (sign). Based on the hypothesis that vehicles do not return a ping while they are rented (not visible in the micro-mobility provider app), trips can be derived by identifying gaps in the timeseries of pings of individual vehicles. The number of trips on a day, the average duration, frequent start and end points can be derived from those trips. The output of this project could be a BI dashboard that displays the previously mentioned metrics to non-technical users.  
+
+The raw dataset for this project is stored on S3, but all tables are desired in a Redshift Data Warehouse. Therefore, steps of this pipeline include the onboarding on the Redshift Data Warehouse, the curation of trips data using the business logic and the aggregation of both trips data and general information that can be derived directly from the dataset without any further processing. This makes up three level of data in the Data Warehouse: the `Staging Layer`, the `Silver Layer` and the `Aggregation Layer`.
+
+To enrich the trip information, a weather dataset is loaded that allows to derive the weather on a given day. This allows to explore correlations between the weather and the number of trips over a period of days.
 
 ## Data Sources
 The datasets for this project are located in the S3 bucket `s3://mobility-data` on Amazon Web Services (AWS).
@@ -8,9 +12,7 @@ The datasets for this project are located in the S3 bucket `s3://mobility-data` 
 The main data source for this project are timestamps of vehicles (e-scooters) by a german micro-mobility provider in the city of Stuttgart. The dataset contains an entry for each of the ~750 vehicles every 2 minutes of the day, containing information such as the battery level, the geo-location and a unique identifier. The mobility data is partitioned by year, month and day and stored as Comma Seperated Values (CSVs) `s3://mobility-data/2021/03/___.csv`. For this project, data from the 1st of March to the 10th of March is available. The pipeline will be scheduled to run once a day, reading and processing the CSV partition for the respective execution date at a time.
 
 ### Weather data
-
-`s3://mobility-data/world-weather-march.csv`  
-[Source](https://www.worldweatheronline.com/stuttgart-weather-history/baden-wurttemberg/de.aspx)
+The data source for enrichment for this project is weather data by the provider `worldweatheronline.com`. The dataset contains one entry for each day containing information such as the min-max temperature, level of rain and humidity in the city of Stuttgart. The data is stored in the bucket `s3://mobility-data/world-weather-march.csv` and was originally extracted from [World Weather Online](https://www.worldweatheronline.com/stuttgart-weather-history/baden-wurttemberg/de.aspx).
 
 ## Data Modell
 ### Staging Layer
@@ -49,7 +51,9 @@ The main data source for this project are timestamps of vehicles (e-scooters) by
 
 ### Silver Layer
 - `mobility_trips`  
-  Processed mobility data that contains data on a trip level. The schema is as followed:
+  Processed mobility data that contains data on a trip level. 
+  Trips are calculated using a business logic that aims at detecting gaps in the timeseries of individual e-scooters. For example: As each scooter gets pinged every 2 minutes, a response containing a geo-location is expected every 2 minutes. If a scooter has been visible for a few hours at a given location, then disappears, and appears again but potentially at a different location, the "hidden-time" is identified as a `trip`. Depending on certain criterias, such as the change of location, the duration of the disappearence and the change in the scooter charge level, the trip is classified as either a `ride`, a `charge` or a `maintenance` event.  
+  The schema of the table is as followed:
   ```sql
       category VARCHAR(15),
       city VARCHAR(25),
@@ -191,10 +195,19 @@ This section outlines the scope of the individual tasks of this pipeline. Each b
   `airflow tasks test mobility-pipeline transfer_mobility_to_redshift "2021-03-01"`
 
 ## Files in Repository
-
-
-### TODOs
-- Run DAG
-- Finish Readme
-  - Describe data
-  - Describe aim of project
+- airflow
+  - dags
+    - dag.py (DAG for mobility-pipeline)
+    - sql_statements.py (Store of SQL queries to create and insert into tables)
+  - plugins
+    - operators
+      - calculate_trips.py (Operator to derive trips using business logic)
+      - s3_to_redshift.py (Operator to load data from S3 to Redshift)
+  - airflow.cfg (Airflow Config)
+  - unittests.cfg (Airflow Unittests)
+- img (Contains images for explanation purposes in this README)
+ 
+- Dockerfile (Dockerfile for the Remote Container as explained in the section `Run Development Environment`)
+- requirements.txt (Requirements to satisfy during the building of the docker image)
+- .devcontainer (Configurations for the Remote Container)
+- README.md
