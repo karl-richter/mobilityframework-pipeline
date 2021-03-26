@@ -15,14 +15,18 @@ AWS_SECRET = os.environ.get('AWS_SECRET')
 default_args = {
     'owner': 'Karl Richter',
     'start_date': datetime(2021, 3, 1),
-    'end_date': datetime(2021, 3, 10)
+    'end_date': datetime(2021, 3, 10),
+    'catchup': True,
+    'retries': 2,
+    'retry_delay': timedelta(seconds=15),
+    'depends_on_past': False,
 }
 
 dag = DAG('mobility-pipeline',
-          default_args=default_args,
-          description='Load and transform data in Redshift with Airflow',
-          schedule_interval=None,
-          max_active_runs=1
+          default_args = default_args,
+          description = 'Load and transform data in Redshift with Airflow',
+          schedule_interval = '@daily',
+          max_active_runs = 1
         )
 
 pipeline_start = DummyOperator(
