@@ -5,6 +5,12 @@ The raw dataset for this project is stored on S3, but all tables are desired in 
 
 To enrich the trip information, a weather dataset is loaded that allows to derive the weather on a given day. This allows to explore correlations between the weather and the number of trips over a period of days.
 
+A plotted extract from the mobility dataset can be seen below:  
+
+
+![Mobility Data](https://github.com/karl-richter/mobilityframework-pipeline/blob/main/img/mobility-data.png)
+
+
 ## Data Sources
 The datasets for this project are located in the S3 bucket `s3://mobility-data` on Amazon Web Services (AWS).
 
