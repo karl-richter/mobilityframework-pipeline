@@ -1,10 +1,9 @@
 MOBILITY_CREATE_TABLE = """
-                       DROP TABLE IF EXISTS mobility_staging;
                        CREATE TABLE IF NOT EXISTS mobility_staging (
                           city VARCHAR(50),
                           country VARCHAR(50),
-                          lat DECIMAL,
-                          lng DECIMAL,
+                          lat REAL,
+                          lng REAL,
                           model VARCHAR(10),
                           sign VARCHAR(10),
                           code VARCHAR(10),
@@ -28,7 +27,7 @@ WEATHER_CREATE_TABLE = """
                           country VARCHAR(50),
                           temperature_min INTEGER,
                           temperature_max INTEGER,
-                          rain DECIMAL,
+                          rain REAL,
                           humidity INTEGER
                        )"""
 
@@ -39,11 +38,11 @@ TRIPS_CREATE_TABLE = """
                        code VARCHAR(15),
                        country VARCHAR(25),
                        dd VARCHAR(10),
-                       end_energy DECIMAL,
-                       end_lat DECIMAL,
-                       end_lng DECIMAL,
+                       end_energy REAL,
+                       end_lat REAL,
+                       end_lng REAL,
                        end_time INTEGER,
-                       energyLevel_diff DECIMAL,
+                       energyLevel_diff REAL,
                        energyType VARCHAR(10),
                        lastActivity TEXT,
                        manufacturer VARCHAR(10),
@@ -51,19 +50,15 @@ TRIPS_CREATE_TABLE = """
                        model VARCHAR(10),
                        provider VARCHAR(10),
                        sign VARCHAR(15),
-                       start_energy DECIMAL,
-                       start_lat DECIMAL,
-                       start_lng DECIMAL,
+                       start_energy REAL,
+                       start_lat REAL,
+                       start_lng REAL,
                        start_time INTEGER,
-                       time_diff DECIMAL,
+                       time_diff REAL,
                        time_parsed TEXT,
                        type VARCHAR(25),
                        yyyy VARCHAR(4)
                    );"""
-
-AGG_DROP_TABLE =  """
-                 DROP TABLE IF EXISTS trips_aggregate;
-                 """
 
 AGG_DELETE_FROM_TABLE =  """
                          DELETE FROM trips_aggregate WHERE dd = '{execution_date}';
@@ -76,12 +71,12 @@ AGG_CREATE_TABLE =  """
                     type VARCHAR(25),
                     trips_num INTEGER,
                     utilized_vehicles_num INTEGER,
-                    trips_duration_avg DECIMAL,
-                    trips_duration_min DECIMAL,
-                    trips_duration_max DECIMAL,
-                    start_energy_avg DECIMAL,
-                    end_energy_avg DECIMAL,
-                    temperature_avg DECIMAL,
+                    trips_duration_avg REAL,
+                    trips_duration_min REAL,
+                    trips_duration_max REAL,
+                    start_energy_avg REAL,
+                    end_energy_avg REAL,
+                    temperature_avg REAL,
                     weather_type VARCHAR(25),
                     dd VARCHAR(10),
                     mm VARCHAR(7),
@@ -113,10 +108,6 @@ AGG_INSERT_TABLE =  """
                     GROUP BY mobility_trips.city, mobility_trips.country, type, temperature_avg, weather_type, mobility_trips.dd, mm, yyyy
                     ;"""
 
-BASE_DROP_TABLE =  """
-                 DROP TABLE IF EXISTS base_aggregate;
-                 """
-
 BASE_DELETE_FROM_TABLE =  """
                          DELETE FROM base_aggregate WHERE dd = '{execution_date}';
                          """
@@ -126,11 +117,11 @@ BASE_CREATE_TABLE =  """
                     city VARCHAR(25),
                     country VARCHAR(25),
                     vehicles_num INTEGER,
-                    lat DECIMAL,
-                    lng DECIMAL,
-                    energy_level_avg DECIMAL,
-                    energy_level_min DECIMAL,
-                    energy_level_max DECIMAL,
+                    lat REAL,
+                    lng REAL,
+                    energy_level_avg REAL,
+                    energy_level_min REAL,
+                    energy_level_max REAL,
                     dd VARCHAR(10),
                     mm VARCHAR(7),
                     yyyy VARCHAR(4)
@@ -167,8 +158,8 @@ WEATHER_TRANS_CREATE_TABLE =  """
                     country VARCHAR(50),
                     temperature_min INTEGER,
                     temperature_max INTEGER,
-                    temperature_avg DECIMAL,
-                    rain DECIMAL,
+                    temperature_avg REAL,
+                    rain REAL,
                     humidity INTEGER,
                     weather_type VARCHAR(25)
                     );

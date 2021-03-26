@@ -1,10 +1,14 @@
 # Mobility-Framework Pipeline
+This project aims at providing aloading, transforming and enriching timeseries data from a micro-mobility provider. 
 
 ## Data Sources
+The datasets for this project are located in the S3 bucket `s3://mobility-data` on Amazon Web Services (AWS).
+
 ### Mobility data
-`s3://mobility-data/mobility-data-raw.csv`
+The main data source for this project are timestamps of vehicles (e-scooters) by a german micro-mobility provider in the city of Stuttgart. The dataset contains an entry for each of the ~750 vehicles every 2 minutes of the day, containing information such as the battery level, the geo-location and a unique identifier. The mobility data is partitioned by year, month and day and stored as Comma Seperated Values (CSVs) `s3://mobility-data/2021/03/___.csv`. For this project, data from the 1st of March to the 10th of March is available. The pipeline will be scheduled to run once a day, reading and processing the CSV partition for the respective execution date at a time.
 
 ### Weather data
+
 `s3://mobility-data/world-weather-march.csv`  
 [Source](https://www.worldweatheronline.com/stuttgart-weather-history/baden-wurttemberg/de.aspx)
 
@@ -15,8 +19,8 @@
    ```sql
       city VARCHAR(50),
       country VARCHAR(50),
-      lat DECIMAL,
-      lng DECIMAL,
+      lat REAL,
+      lng REAL,
       model VARCHAR(10),
       sign VARCHAR(10),
       code VARCHAR(10),
@@ -39,7 +43,7 @@
       country VARCHAR(50),
       temperature_min INTEGER,
       temperature_max INTEGER,
-      rain DECIMAL,
+      rain REAL,
       humidity INTEGER
   ```
 
@@ -52,11 +56,11 @@
       code VARCHAR(15),
       country VARCHAR(25),
       dd VARCHAR(10),
-      end_energy DECIMAL,
-      end_lat DECIMAL,
-      end_lng DECIMAL,
+      end_energy REAL,
+      end_lat REAL,
+      end_lng REAL,
       end_time INTEGER,
-      energyLevel_diff DECIMAL,
+      energyLevel_diff REAL,
       energyType VARCHAR(10),
       lastActivity TEXT,
       manufacturer VARCHAR(10),
@@ -64,11 +68,11 @@
       model VARCHAR(10),
       provider VARCHAR(10),
       sign VARCHAR(15),
-      start_energy DECIMAL,
-      start_lat DECIMAL,
-      start_lng DECIMAL,
+      start_energy REAL,
+      start_lat REAL,
+      start_lng REAL,
       start_time INTEGER,
-      time_diff DECIMAL,
+      time_diff REAL,
       time_parsed TEXT,
       type VARCHAR(25),
       yyyy VARCHAR(4)
@@ -82,8 +86,8 @@
       country VARCHAR(50),
       temperature_min INTEGER,
       temperature_max INTEGER,
-      temperature_avg DECIMAL,
-      rain DECIMAL,
+      temperature_avg REAL,
+      rain REAL,
       humidity INTEGER,
       weather_type VARCHAR(25)
   ```
@@ -95,11 +99,11 @@
       city VARCHAR(25),
       country VARCHAR(25),
       vehicles_num INTEGER,
-      lat DECIMAL,
-      lng DECIMAL,
-      energy_level_avg DECIMAL,
-      energy_level_min DECIMAL,
-      energy_level_max DECIMAL,
+      lat REAL,
+      lng REAL,
+      energy_level_avg REAL,
+      energy_level_min REAL,
+      energy_level_max REAL,
       dd VARCHAR(10),
       mm VARCHAR(7),
       yyyy VARCHAR(4)
@@ -113,12 +117,12 @@
       type VARCHAR(25),
       trips_num INTEGER,
       utilized_vehicles_num INTEGER,
-      trips_duration_avg DECIMAL,
-      trips_duration_min DECIMAL,
-      trips_duration_max DECIMAL,
-      start_energy_avg DECIMAL,
-      end_energy_avg DECIMAL,
-      temperature_avg DECIMAL,
+      trips_duration_avg REAL,
+      trips_duration_min REAL,
+      trips_duration_max REAL,
+      start_energy_avg REAL,
+      end_energy_avg REAL,
+      temperature_avg REAL,
       weather_type VARCHAR(25),
       dd VARCHAR(10),
       mm VARCHAR(7),
@@ -184,4 +188,13 @@ This section outlines the scope of the individual tasks of this pipeline. Each b
   `airflow tasks list mobility-pipeline --tree`
 - Run task from CLI  
   `airflow tasks test <dag_id> <task_id> <execution_date>`  
-  `airflow tasks test mobility-pipeline transfer_s3_to_redshift "2021-03-01"`
+  `airflow tasks test mobility-pipeline transfer_mobility_to_redshift "2021-03-01"`
+
+## Files in Repository
+
+
+### TODOs
+- Run DAG
+- Finish Readme
+  - Describe data
+  - Describe aim of project

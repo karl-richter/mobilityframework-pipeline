@@ -5,8 +5,6 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators import S3ToRedshiftOperator
 from airflow.operators import CalculateTripsOperator
-#from airflow.operators import (S3ToRedshiftOperator) #, LoadFactOperator,
-#                                LoadDimensionOperator, DataQualityOperator)
 
 import sql_statements
 
@@ -16,7 +14,7 @@ AWS_SECRET = os.environ.get('AWS_SECRET')
 default_args = {
     'owner': 'Karl Richter',
     'start_date': datetime(2021, 3, 1),
-    'end_date': datetime(2021, 3, 2)
+    'end_date': datetime(2021, 3, 10)
 }
 
 dag = DAG('mobility-pipeline',
@@ -37,7 +35,7 @@ task_transfer_mobility_to_redshift = S3ToRedshiftOperator (
         aws_credentials_id = "aws_credentials",
         redshift_conn_id = "redshift",
         s3_bucket = "mobility-data",
-        s3_key = "{year}/{month}/{day}/mobility-data-{date}.csv",
+        s3_key = "{year}/{month}/mobility-data-{date}.csv",
         schema = "PUBLIC",
         table = "mobility_staging",
         copy_arguments = "CSV DELIMITER ',' IGNOREHEADER 1",
@@ -91,12 +89,10 @@ task_aggregate_trips = PostgresOperator(
     postgres_conn_id = "redshift",
     dag = dag,
     sql = """
-          {drop}
           {create}
           {delete}
           {insert}
-          """.format(drop = sql_statements.AGG_DROP_TABLE,
-                     create = sql_statements.AGG_CREATE_TABLE,
+          """.format(create = sql_statements.AGG_CREATE_TABLE,
                      delete = sql_statements.AGG_DELETE_FROM_TABLE.format(execution_date = '{{ ds }}'),
                      insert = sql_statements.AGG_INSERT_TABLE.format(execution_date = '{{ ds }}')
                     )
@@ -107,12 +103,10 @@ task_aggregate_base = PostgresOperator(
     postgres_conn_id = "redshift",
     dag = dag,
     sql = """
-          {drop}
           {create}
           {delete}
           {insert}
-          """.format(drop = sql_statements.BASE_DROP_TABLE,
-                     create = sql_statements.BASE_CREATE_TABLE,
+          """.format(create = sql_statements.BASE_CREATE_TABLE,
                      delete = sql_statements.BASE_DELETE_FROM_TABLE.format(execution_date = '{{ ds }}'),
                      insert = sql_statements.BASE_INSERT_TABLE.format(execution_date = '{{ ds }}')
                     )
